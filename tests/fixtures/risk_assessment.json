@@ -1,0 +1,17 @@
+{
+  "scenario": "six_dof_pick_and_place_risk",
+  "schema": "RiskSchema",
+  "response": {
+    "level": "medium",
+    "items": [
+      {"category": "kinematics", "description": "Numerical IK may have convergence issues near singularities", "probability": "low", "impact": "medium"},
+      {"category": "trajectory", "description": "SPLINE trajectory through waypoints may exceed joint velocity limits", "probability": "medium", "impact": "low"},
+      {"category": "control", "description": "ROS2 controller latency could affect precise positioning at high speed", "probability": "low", "impact": "medium"}
+    ],
+    "warnings": [
+      "Validate IK convergence for all target waypoints before deployment",
+      "Consider adding velocity scaling for SPLINE segments",
+      "Test ROS2 node startup order in launch configuration"
+    ]
+  }
+}

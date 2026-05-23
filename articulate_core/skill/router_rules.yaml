@@ -1,0 +1,80 @@
+rules:
+  - pattern: "forward_kinematics"
+    route: "library"
+    confidence: 0.95
+    module: "skill.library.kinematics.fk"
+    note: "Standard FK via Pinocchio or pure-numpy"
+
+  - pattern: "inverse_kinematics"
+    route: "library"
+    confidence: 0.90
+    module: "skill.library.kinematics.ik"
+    note: "Standard IK for 6-DOF arms"
+
+  - pattern: "inverse_kinematics_7dof"
+    route: "library_with_prompt"
+    confidence: 0.70
+    module: "skill.library.kinematics.ik"
+    note: "7-DOF has redundancy; library + prompt augment"
+
+  - pattern: "trajectory_ptp"
+    route: "library"
+    confidence: 0.95
+    module: "skill.library.planning.plan_ptp"
+    note: "Standard point-to-point joint-space trajectory"
+
+  - pattern: "trajectory_linear"
+    route: "library"
+    confidence: 0.90
+    module: "skill.library.planning.plan_linear"
+    note: "Cartesian linear motion"
+
+  - pattern: "trajectory_circular"
+    route: "library"
+    confidence: 0.85
+    module: "skill.library.planning.plan_circular"
+    note: "Circular interpolation trajectory"
+
+  - pattern: "ros2_controller_node"
+    route: "library"
+    confidence: 0.90
+    module: "skill.library.ros2_gen.node"
+    note: "Standard ros2_control node template"
+
+  - pattern: "ros2_launch_file"
+    route: "library"
+    confidence: 0.95
+    module: "skill.library.ros2_gen.launch"
+    note: "Standard launch file template"
+
+  - pattern: "ros2_package_config"
+    route: "library"
+    confidence: 0.95
+    module: "skill.library.ros2_gen.package"
+    note: "package.xml and setup.py templates"
+
+  - pattern: "trajectory_planner"
+    route: "library"
+    confidence: 0.90
+    module: "skill.library.planning"
+    note: "General trajectory planner for PTP/LIN/CIRC interpolation"
+
+  - pattern: "obstacle_avoidance"
+    route: "prompt"
+    confidence: 0.60
+    note: "Highly scene-dependent; prompt generation recommended"
+
+  - pattern: "custom_control_logic"
+    route: "prompt"
+    confidence: 0.50
+    note: "Custom logic; user arbitration expected"
+
+  - pattern: "force_control"
+    route: "prompt"
+    confidence: 0.55
+    note: "Force/impedance control; highly task-specific"
+
+  - pattern: "dual_arm_coordination"
+    route: "prompt"
+    confidence: 0.40
+    note: "Dual-arm task; complex coordination logic"

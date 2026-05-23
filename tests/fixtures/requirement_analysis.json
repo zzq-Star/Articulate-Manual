@@ -1,0 +1,28 @@
+{
+  "scenario": "pick_and_place_simple",
+  "input": "Pick and place from (0.3, 0, 0.2) to (0.6, 0, 0.3)",
+  "schema": "RequirementSchema",
+  "response": {
+    "task_type": "pick_and_place",
+    "key_waypoints": [
+      {"position": [0.3, 0, 0.2], "orientation": null, "label": "pick_start"},
+      {"position": [0.3, 0, 0.05], "orientation": null, "label": "pick_approach"},
+      {"position": [0.3, 0, 0.05], "orientation": null, "label": "pick"},
+      {"position": [0.3, 0, 0.2], "orientation": null, "label": "pick_retract"},
+      {"position": [0.6, 0, 0.3], "orientation": null, "label": "place_approach"},
+      {"position": [0.6, 0, 0.1], "orientation": null, "label": "place"},
+      {"position": [0.6, 0, 0.3], "orientation": null, "label": "place_retract"}
+    ],
+    "end_effector": "parallel_gripper",
+    "speed_requirements": {"linear": 0.25, "angular": 0.5},
+    "precision_requirements": {"position_mm": 1.0, "rotation_deg": 0.5},
+    "environment": {
+      "description": "Table-top workspace, no obstacles",
+      "obstacles": [
+        {"position": [0.45, 0, 0], "dimensions": [0.6, 0.4, 0.02]}
+      ]
+    },
+    "missing_information": [],
+    "summary": "Pick object from (0.3, 0, 0.2) and place at (0.6, 0, 0.3) using parallel gripper"
+  }
+}

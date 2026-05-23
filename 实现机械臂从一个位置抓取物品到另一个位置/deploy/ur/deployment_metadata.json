@@ -1,0 +1,9 @@
+{
+  "brand": "ur",
+  "waypoints": 8,
+  "tool": "tool0",
+  "payload_kg": 0.0,
+  "files": [
+    "articulate_program.script"
+  ]
+}

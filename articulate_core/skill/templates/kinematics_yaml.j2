@@ -1,0 +1,14 @@
+# Kinematics parameters
+kinematics:
+  solver: "kdl"   # KDL, UR, or custom
+  position_only: false
+
+  # DH Parameters (standard convention)
+  dh_parameters:
+    {% for i in range(6) %}
+    joint_{{ i }}:
+      a: 0.0
+      alpha: 0.0
+      d: 0.0
+      theta: 0.0
+    {% endfor %}

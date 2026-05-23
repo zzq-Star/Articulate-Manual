@@ -1,0 +1,40 @@
+{
+  "scenario": "six_dof_pick_and_place",
+  "input": "six_dof_standard arm, pick and place task",
+  "schema": "ApproachSchema",
+  "response": {
+    "kinematics_strategy": {
+      "method": "numerical",
+      "redundancy_resolution": null
+    },
+    "trajectory_types": ["PTP", "LIN", "SPLINE"],
+    "ros2_architecture": {
+      "nodes": [
+        {
+          "name": "arm_controller",
+          "type": "position_controller",
+          "topics": ["/joint_commands", "/joint_states"]
+        },
+        {
+          "name": "trajectory_executor",
+          "type": "trajectory_server",
+          "topics": ["/trajectory_command"]
+        }
+      ],
+      "topics": [
+        {"name": "/joint_commands", "type": "sensor_msgs/JointState"},
+        {"name": "/joint_states", "type": "sensor_msgs/JointState"},
+        {"name": "/trajectory_command", "type": "trajectory_msgs/JointTrajectory"}
+      ],
+      "services": [
+        {"name": "/compute_fk", "type": "kinematics_msgs/GetPositionFK"},
+        {"name": "/compute_ik", "type": "kinematics_msgs/GetPositionIK"}
+      ],
+      "actions": [
+        {"name": "/follow_trajectory", "type": "control_msgs/FollowJointTrajectory"}
+      ]
+    },
+    "simulation_feasibility": true,
+    "description": "Six-DOF industrial arm using numerical IK with PTP/LIN/SPLINE trajectory planning. ROS2 control architecture with position controller and trajectory server. Suitable for pick-and-place operations with 1mm precision."
+  }
+}

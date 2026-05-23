@@ -1,0 +1,14 @@
+{
+  "scenario": "velocity_overshoot_diagnosis",
+  "schema": "DiagnosisSchema",
+  "response": {
+    "diagnosis": "Joint velocities exceed rated limits during PTP trajectory acceleration phase. The trapezoidal velocity profile has excessive acceleration at the start of motion, causing joint 2 and joint 3 to exceed 110% of their rated velocity.",
+    "severity": "medium",
+    "suggested_repairs": [
+      {"action": "reduce_speed", "parameter": "velocity_scaling", "value": 0.5, "description": "Reduce trajectory velocity scaling factor from 1.0 to 0.5"},
+      {"action": "increase_acceleration_time", "parameter": "acceleration_time", "value": 0.3, "description": "Increase acceleration/deceleration time to 0.3s for smoother ramps"},
+      {"action": "modify_trajectory", "parameter": "blend_radius", "value": 0.02, "description": "Add blend radius between PTP segments to smooth transitions"}
+    ],
+    "alternative_approach": "Consider using S-curve velocity profiles instead of trapezoidal to reduce jerk and peak velocities."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "scenario": "pick_and_place_decomposition",
+  "schema": "DecompositionSchema",
+  "response": {
+    "sub_tasks": [
+      {
+        "name": "forward_kinematics",
+        "description": "FK solver using DH parameters for 6-DOF arm",
+        "context": {"dof": 6, "method": "dh"}
+      },
+      {
+        "name": "inverse_kinematics",
+        "description": "Numerical IK solver with Levenberg-Marquardt",
+        "context": {"dof": 6, "method": "numerical"}
+      },
+      {
+        "name": "trajectory_planner",
+        "description": "PTP, LIN, SPLINE trajectory planning",
+        "context": {"types": ["PTP", "LIN", "SPLINE"]}
+      },
+      {
+        "name": "ros2_control_node",
+        "description": "Main ROS2 control node with trajectory execution and state publishing",
+        "context": {"node_name": "arm_controller"}
+      },
+      {
+        "name": "launch_file",
+        "description": "ROS2 launch file for all nodes",
+        "context": {"nodes": ["arm_controller", "trajectory_executor"]}
+      },
+      {
+        "name": "package_config",
+        "description": "package.xml and setup.py for ROS2 package",
+        "context": {"pkg_name": "arm_controller"}
+      }
+    ]
+  }
+}

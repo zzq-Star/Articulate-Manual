@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "articulate-core"
+version = "0.1.0"
+description = "Robotic arm code generation Agent CLI tool"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "typer>=0.9.0",
+    "anthropic>=0.30.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pyyaml>=6.0",
+    "jinja2>=3.0",
+    "numpy>=1.24",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+deepseek = ["openai>=1.0.0"]
+robotics = ["pinocchio>=3.0", "ompl>=1.6"]
+simulation = ["mujoco>=3.0"]
+dev = ["pytest>=7.0", "pytest-asyncio>=0.21", "pytest-mock>=3.10"]
+
+[project.entry-points."articulate.providers"]
+anthropic = "articulate_core.llm.client:ClaudeClient"
+deepseek = "articulate_core.llm.client:DeepSeekClient"
+
+[project.scripts]
+articulate = "articulate_core.cli.main:main"
+
+[tool.setuptools.packages.find]
+include = ["articulate_core*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "e2e: end-to-end tests that require an API key",
+]

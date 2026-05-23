@@ -1,0 +1,9 @@
+{
+  "scenario": "generic_routing",
+  "schema": "RouteResponse",
+  "response": {
+    "route": "library",
+    "confidence": 0.85,
+    "explanation": "Sub-task matches standard library pattern"
+  }
+}
