@@ -482,8 +482,16 @@ articulate generate --help
 ### 基本用法
 
 ```bash
-articulate generate "目标描述" --brand 品牌
+articulate generate "目标描述" [-m 模型] --brand 品牌
 ```
+
+可选参数：
+
+| 参数 | 说明 |
+|------|------|
+| `-m`, `--model` | LLM 模型名称（如 `deepseek-chat`、`claude-sonnet-4-20250514`），不指定则使用配置的默认模型 |
+| `-p`, `--provider` | LLM 提供商（`anthropic` / `deepseek` / `openai`），不指定时从 `--model` 自动推断 |
+| `--dir` | 项目输出目录，不指定则自动创建 |
 
 ### 示例
 
@@ -499,6 +507,9 @@ articulate generate "抓取 (0.2,0.1,0.3) 处的零件，放置到 (0.5,-0.1,0.2
 
 # 指定 ABB 机器人
 articulate generate "码垛任务：从传送带抓取到托盘 (0,0,0.5)，共 3 层" -b abb
+
+# 指定 DeepSeek 模型
+articulate generate "从 (0.3,0,0.2) 搬运到 (0.6,0,0.3)" -m deepseek-chat -b ur
 ```
 
 ### 执行流程

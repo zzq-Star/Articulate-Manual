@@ -1048,7 +1048,30 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href=
 命令自动完成全部 5 个阶段。</p>
 <h3 id="基本用法">基本用法</h3>
 <div class="sourceCode" id="cb11"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;目标描述&quot;</span> <span class="at">--brand</span> 品牌</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;目标描述&quot;</span> [<span class="at">-m</span> 模型] <span class="at">--brand</span> 品牌</span></code></pre></div>
+<p>可选参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-m</code>, <code>--model</code></td>
+<td>LLM 模型名称（如 <code>deepseek-chat</code>、<code>claude-sonnet-4-20250514</code>），不指定则使用默认模型</td>
+</tr>
+<tr>
+<td><code>-p</code>, <code>--provider</code></td>
+<td>LLM 提供商（<code>anthropic</code> / <code>deepseek</code> / <code>openai</code>），不指定时从 <code>--model</code> 自动推断</td>
+</tr>
+<tr>
+<td><code>--dir</code></td>
+<td>项目输出目录，不指定则自动创建</td>
+</tr>
+</tbody>
+</table>
 <h3 id="示例">示例</h3>
 <div class="sourceCode" id="cb12"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 从 A 点抓取放到 B 点，目标 UR 机器人</span></span>
@@ -1061,7 +1084,10 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href=
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;抓取 (0.2,0.1,0.3) 处的零件，放置到 (0.5,-0.1,0.2)，速度 0.5m/s，精度 ±1mm&quot;</span></span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># 指定 ABB 机器人</span></span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;码垛任务：从传送带抓取到托盘 (0,0,0.5)，共 3 层&quot;</span> <span class="at">-b</span> abb</span></code></pre></div>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;码垛任务：从传送带抓取到托盘 (0,0,0.5)，共 3 层&quot;</span> <span class="at">-b</span> abb</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="co"># 指定 DeepSeek 模型</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="ex">articulate</span> generate <span class="st">&quot;从 (0.3,0,0.2) 搬运到 (0.6,0,0.3)&quot;</span> <span class="at">-m</span> deepseek-chat <span class="at">-b</span> ur</span></code></pre></div>
 <h3 id="执行流程">执行流程</h3>
 <p>运行后自动经历：</p>
 <pre><code>1/5  Requirement Analysis   需求分析（从自然语言提取结构化需求）
