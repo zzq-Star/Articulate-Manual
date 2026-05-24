@@ -764,9 +764,9 @@ TrajectoryPlanner → S-curve 默认轨迹） 3. 使用 MuJoCo
 <tr>
 <td>condition_number</td>
 <td>奇异位形接近度</td>
-<td>≤ 5000.0</td>
+<td>≤ 1000.0</td>
 <td>-</td>
-<td>Jacobian 条件数（平移雅可比）</td>
+<td>Jacobian 条件数（P95，累计 95% 分位）</td>
 </tr>
 <tr>
 <td>tcp_position_error</td>

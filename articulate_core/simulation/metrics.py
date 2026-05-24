@@ -292,14 +292,14 @@ class SingularityMetric(BaseMetric):
     """Check proximity to singular configurations via condition number."""
     name = "condition_number"
     unit = ""
-    threshold = 5000.0
-    description = "Checks manipulability (condition number < 5000)"
+    threshold = 1000.0
+    description = "Checks proximity to singular configurations via P95 condition number (< 1000)"
 
     def compute(self, data: SimulationData) -> float:
         if len(data.condition_numbers) == 0:
             return 0.0
-        max_cn = np.nanmax(data.condition_numbers)
-        return float(max_cn) if np.isfinite(max_cn) else 0.0
+        p95 = np.nanpercentile(data.condition_numbers, 95)
+        return float(p95) if np.isfinite(p95) else 0.0
 
 
 class TCPAccuracyMetric(BaseMetric):

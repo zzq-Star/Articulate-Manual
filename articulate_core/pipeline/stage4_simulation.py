@@ -2,6 +2,7 @@ import asyncio
 import importlib
 import json
 import logging
+import math
 import sys
 import tempfile
 import traceback
@@ -716,6 +717,11 @@ class SimulationStage(BaseStage):
                     value=1.0, threshold=0.5, unit="bool",
                     explanation="No kinematics file found",
                 ),
+                "kinematics_ik_orientation": MetricResult(
+                    name="kinematics_ik_orientation", passed=False,
+                    value=1.0, threshold=0.5, unit="bool",
+                    explanation="No kinematics file found",
+                ),
             }
 
         kin, cleanup = self._import_from_source(
@@ -780,8 +786,9 @@ class SimulationStage(BaseStage):
 
                 q_ik_arr = np.asarray(q_ik, dtype=float).ravel()
                 T_round = kin.forward(q_ik_arr.tolist())
-                pos_error = float(np.linalg.norm(T_round[:3, 3] - last_pose[:3, 3]))
 
+                # Position round-trip error
+                pos_error = float(np.linalg.norm(T_round[:3, 3] - last_pose[:3, 3]))
                 ik_ok = pos_error < 1e-3
                 results["kinematics_ik_roundtrip"] = MetricResult(
                     name="kinematics_ik_roundtrip", passed=ik_ok,
@@ -793,11 +800,34 @@ class SimulationStage(BaseStage):
                         f"IK round-trip error too large: {pos_error:.6f}m"
                     ),
                 )
+
+                # Orientation round-trip error
+                R_round = T_round[:3, :3]
+                R_target = last_pose[:3, :3]
+                R_diff = R_round.T @ R_target
+                cos_angle = max(-1.0, min(1.0, (np.trace(R_diff) - 1.0) / 2.0))
+                orient_error = float(math.acos(cos_angle))
+                orient_ok = orient_error < 0.017  # < 1 degree
+                results["kinematics_ik_orientation"] = MetricResult(
+                    name="kinematics_ik_orientation", passed=orient_ok,
+                    value=orient_error,
+                    threshold=0.017, unit="rad",
+                    explanation=(
+                        f"IK round-trip orientation error: {orient_error:.6f} rad ({math.degrees(orient_error):.3f} deg)"
+                        if orient_ok else
+                        f"IK round-trip orientation error too large: {orient_error:.6f} rad"
+                    ),
+                )
             else:
                 results["kinematics_ik_roundtrip"] = MetricResult(
                     name="kinematics_ik_roundtrip", passed=False,
                     value=1.0, threshold=0.5, unit="bool",
                     explanation="IK round-trip skipped — FK failed",
+                )
+                results["kinematics_ik_orientation"] = MetricResult(
+                    name="kinematics_ik_orientation", passed=False,
+                    value=1.0, threshold=0.5, unit="bool",
+                    explanation="IK orientation skipped — FK failed",
                 )
 
             return results
@@ -811,6 +841,11 @@ class SimulationStage(BaseStage):
                 ),
                 "kinematics_ik_roundtrip": MetricResult(
                     name="kinematics_ik_roundtrip", passed=False,
+                    value=1.0, threshold=0.5, unit="bool",
+                    explanation="Kinematics execution error",
+                ),
+                "kinematics_ik_orientation": MetricResult(
+                    name="kinematics_ik_orientation", passed=False,
                     value=1.0, threshold=0.5, unit="bool",
                     explanation="Kinematics execution error",
                 ),
@@ -863,15 +898,31 @@ class SimulationStage(BaseStage):
         if not (torque_fail or velocity_fail or accel_fail):
             return None
 
+        # Use per-joint torque data if available to target specific joints
+        torque_metrics = {}
+        for m in report.metrics.values():
+            if m.name == "joint_torque_peak":
+                torque_metrics = getattr(m, "data", None)
+                break
+
         overrides = {}
         for j in range(n_dof):
             entry = {}
-            if torque_fail or accel_fail:
-                # Progressively reduce kp: 20 → 12 → 7
-                entry["kp"] = max(5, int(20 / (attempt * 1.6)))
+            if torque_fail:
+                # Progressive kp reduction: 20 → 15 → 10 (smoother than old 20→12→7)
+                kp = max(8, int(20 - (attempt - 1) * 5))
+                entry["kp"] = kp
+            if accel_fail and not torque_fail:
+                # Only acceleration issue: gentle kp reduction
+                kp = max(10, int(20 - (attempt - 1) * 3))
+                entry["kp"] = kp
             if velocity_fail:
-                # Progressively increase kv for more velocity damping: 0.5 → 1.0 → 2.0
-                entry["kv"] = 0.5 * (2 ** (attempt - 1))
+                # Moderate kv increase for velocity damping: 0.5 → 1.0 → 2.0
+                kv = 0.5 * (2 ** (attempt - 1))
+                entry["kv"] = min(kv, 3.0)
+            if torque_fail and attempt >= 3:
+                # After multiple failed attempts, allow slight torque headroom
+                entry["forcerange_scale"] = 1.1
             if entry:
                 overrides[str(j)] = entry
 
@@ -948,6 +999,21 @@ class SimulationStage(BaseStage):
             changed = list(repair.files.keys())
             print(f"  Modified {modified} file(s): {', '.join(changed[:3])}{'...' if len(changed) > 3 else ''}")
             print(f"  Reason: {repair.explanation[:120]}")
+
+            # Validate repaired code before re-running simulation
+            code_metrics = self._validate_code_execution(code)
+            if code_metrics:
+                code_failures = [m for m in code_metrics.values() if not m.passed]
+                if code_failures:
+                    print(f"  [yellow]Repair introduced {len(code_failures)} code issue(s):[/yellow]")
+                    for m in code_failures:
+                        print(f"    - {m.name}: {m.explanation}")
+                    # Only abort if syntax or required symbols are broken
+                    critical = {m.name for m in code_failures
+                                if m.name in ("code_syntax_valid", "code_required_symbols")}
+                    if critical and attempt < self.MAX_REPAIR_ATTEMPTS:
+                        print("  [red]Critical code issues detected. Reverting repair.[/red]")
+                        return report
 
         except Exception as e:
             logger.warning("LLM code repair failed: %s", e)

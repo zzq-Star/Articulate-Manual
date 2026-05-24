@@ -243,7 +243,7 @@ articulate report                       # 生成全流程报告
 | 自碰撞 | self_collision_distance | ≥ 5.0 | mm | 连杆最小间距，跳过相邻链接 |
 | 工作空间 | joint_limit_margin | ≥ 0.05 | rad | 距离关节硬限位的裕度 |
 | 路径平滑度 | path_jerk | ≤ 100.0 | ratio | 归一化急动度（max_jerk / typical_jerk） |
-| 奇异点 | condition_number | ≤ 5000.0 | - | Jacobian 条件数（平移雅可比 3×6） |
+| 奇异点 | condition_number | ≤ 1000.0 | - | Jacobian 条件数（P95，累计 95% 分位） |
 | 末端精度 | tcp_position_error | ≤ 100.0 | ratio | TCP 步长一致性（max_dev / mean_step） |
 | 负载 | payload_ratio | ≤ 0.9 | ratio | 最大力矩 / 额定力矩 |
 | 代码语法 | code_syntax_valid | = 0 | errors | 所有 .py 文件 ast.parse 语法检查 |

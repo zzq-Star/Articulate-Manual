@@ -189,22 +189,10 @@ class CodeGenerationEngine:
                 "pkg_name": "arm_controller",
                 "arm_name": arm_params.get("name", "arm"),
                 "has_kinematics": True,
-                "trajectory_types": [t.value for t in approach.trajectory_types],
-                "node_class": "ArmController",
-                "node_name": "arm_controller_node",
-                "publishers": [
-                    {"name": "trajectory_pub", "msg_type": "JointTrajectory",
-                     "topic": "/arm_controller/command"},
-                    {"name": "state_pub", "msg_type": "JointState",
-                     "topic": "/arm_controller/state"},
-                ],
-                "subscribers": [
-                    {"name": "command_sub", "msg_type": "JointTrajectory",
-                     "topic": "/arm_controller/goal", "callback": "on_goal"},
-                ],
+                "arm_parameters": arm_params,
             }
-            fk_code = self.skill.ros2_gen.render_node(context)
-            files[f"ros_ws/src/arm_controller/arm_controller/arm_kinematics.py"] = fk_code
+            kin_code = self.skill.ros2_gen._render_kinematics_source(context)
+            files[f"ros_ws/src/arm_controller/arm_controller/arm_kinematics.py"] = kin_code
         elif module and "planning" in module:
             files[f"ros_ws/src/arm_controller/arm_controller/trajectory_planner.py"] = (
                 "import numpy as np\n\n"

@@ -178,8 +178,25 @@ class TestSingularityMetric:
         assert result.passed
 
     def test_bad_condition_fails(self):
+        """Sustained high condition numbers across all frames should fail."""
         data = _make_data()
-        data.condition_numbers = np.ones(100) * 2000.0  # exceeds threshold of 1000.0
+        data.condition_numbers = np.ones(100) * 2000.0
+        metric = SingularityMetric()
+        result = metric.evaluate(data)
+        assert not result.passed
+
+    def test_p95_ignores_top_5_percent_spikes(self):
+        """P95 should tolerate a few outlier frames with high condition numbers."""
+        data = _make_data()
+        data.condition_numbers = np.array([5.0] * 96 + [20000.0] * 4)
+        metric = SingularityMetric()
+        result = metric.evaluate(data)
+        assert result.passed
+
+    def test_p95_fails_when_over_5_percent_singular(self):
+        """P95 should fail when >5% of frames have high condition numbers."""
+        data = _make_data()
+        data.condition_numbers = np.array([5.0] * 94 + [20000.0] * 6)
         metric = SingularityMetric()
         result = metric.evaluate(data)
         assert not result.passed

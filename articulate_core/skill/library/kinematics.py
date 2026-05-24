@@ -1,3 +1,4 @@
+import math
 import logging
 from dataclasses import dataclass
 from typing import Optional
@@ -53,30 +54,62 @@ class KinematicsLibrary:
             return self._ik_pinocchio(arm, target, initial_guess)
         return self._ik_numerical(arm, target, initial_guess, max_iterations, tolerance)
 
+    @staticmethod
+    def _orientation_error(R_cur: np.ndarray, R_tgt: np.ndarray) -> np.ndarray:
+        """Orientation error as 3-vector (cross-product of column pairs)."""
+        error = np.zeros(3)
+        for i in range(3):
+            error += np.cross(R_cur[:, i], R_tgt[:, i])
+        return 0.5 * error
+
+    @staticmethod
+    def _rotation_vector(R: np.ndarray) -> np.ndarray:
+        """Convert rotation matrix → rotation vector (axis * angle)."""
+        theta = math.acos(max(-1.0, min(1.0, (np.trace(R) - 1.0) / 2.0)))
+        if theta < 1e-10:
+            return np.zeros(3)
+        w = np.array([
+            R[2, 1] - R[1, 2],
+            R[0, 2] - R[2, 0],
+            R[1, 0] - R[0, 1],
+        ])
+        return w / (2.0 * math.sin(theta)) * theta
+
     def _ik_numerical(
         self, arm: ArmModel, target: np.ndarray,
         initial_guess: Optional[np.ndarray],
         max_iter: int, tol: float,
     ) -> IKResult:
-        """Numerical IK using Levenberg-Marquardt."""
+        """Numerical IK using Levenberg-Marquardt (6-DOF: position + orientation)."""
         n_dof = arm.num_dof()
         q = initial_guess.copy() if initial_guess is not None else np.zeros(n_dof)
         lam = 1.0  # damping factor
 
+        # Ensure target is a 4x4 matrix (auto-convert 3-vector to identity orientation)
+        if target.shape != (4, 4):
+            T_target = np.eye(4)
+            T_target[:3, 3] = target.ravel()[:3]
+            target = T_target
+
         for i in range(max_iter):
             T_current = arm.compute_fk(q)
-            pos_current = T_current[:3, 3]
-            pos_target = target[:3, 3] if target.shape == (4, 4) else target
+            R_cur = T_current[:3, :3]
+            p_cur = T_current[:3, 3]
+            R_tgt = target[:3, :3]
+            p_tgt = target[:3, 3]
 
-            error = pos_target - pos_current
+            # 6-DOF error
+            pos_err = p_tgt - p_cur
+            ori_err = self._orientation_error(R_cur, R_tgt)
+            error = np.concatenate([pos_err, ori_err])
             err_norm = np.linalg.norm(error)
 
             if err_norm < tol:
                 return IKResult(solution=q, success=True, iterations=i, residual=float(err_norm))
 
-            # Approximate Jacobian via finite differences
+            # 6×n geometric Jacobian via finite differences
             J = self._numerical_jacobian(arm, q)
-            JJT = J @ J.T + lam * lam * np.eye(3)
+            JJT = J @ J.T + lam * lam * np.eye(6)
 
             try:
                 dq = J.T @ np.linalg.solve(JJT, error)
@@ -149,12 +182,13 @@ class KinematicsLibrary:
             return self._ik_numerical(arm, target, initial_guess, 100, 1e-6)
 
     def _numerical_jacobian(self, arm: ArmModel, q: np.ndarray, eps: float = 1e-6) -> np.ndarray:
-        """Compute geometric Jacobian via finite differences."""
+        """Compute geometric Jacobian via finite differences (6×n: linear + angular)."""
         n_dof = arm.num_dof()
         T0 = arm.compute_fk(q)
         p0 = T0[:3, 3]
+        R0 = T0[:3, :3]
 
-        J = np.zeros((3, n_dof))
+        J = np.zeros((6, n_dof))
         for i in range(n_dof):
             q_eps = q.copy()
             q_eps[i] += eps
@@ -164,7 +198,14 @@ class KinematicsLibrary:
                 q_eps[i] = np.clip(q_eps[i], lim.lower, lim.upper)
 
             T_eps = arm.compute_fk(q_eps)
-            J[:, i] = (T_eps[:3, 3] - p0) / eps
+
+            # Linear velocity (position finite difference)
+            J[:3, i] = (T_eps[:3, 3] - p0) / eps
+
+            # Angular velocity (rotation finite difference)
+            R_eps = T_eps[:3, :3]
+            R_diff = R_eps @ R0.T  # rotation from q → q+eps in current frame
+            J[3:, i] = self._rotation_vector(R_diff) / eps
 
         return J
 

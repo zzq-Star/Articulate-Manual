@@ -160,14 +160,15 @@ class MuJoCoSimulator:
                 elif model.nbody > 0:
                     tcp_pos_arr[sim_step] = data.xpos[-1]  # last body position
 
-                # Compute condition number from Jacobian at end-effector
-                if jacp is not None and tcp_site_id >= 0:
+                # Compute condition number from 6×n geometric Jacobian
+                # at end-effector (linear + angular)
+                if jacp is not None and jacr is not None and tcp_site_id >= 0:
                     try:
                         body_id = model.site(tcp_site_id).bodyid.item()
                         site_pos = data.site_xpos[tcp_site_id].copy()
                         mujoco.mj_jac(model, data, jacp, jacr, site_pos, body_id)
-                        # Use Jacobian at TCP: jacp[:3, :n_dof]
-                        J = jacp[:3, :n_dof]
+                        # Stack linear + angular into 6×n geometric Jacobian
+                        J = np.vstack([jacp[:3, :n_dof], jacr[:3, :n_dof]])
                         JJt = J @ J.T
                         if np.any(np.isfinite(JJt)):
                             eigenvalues = np.linalg.eigvalsh(JJt)

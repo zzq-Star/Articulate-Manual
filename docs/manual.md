@@ -260,7 +260,7 @@ ros_ws/src/arm_controller/
 | self_collision_distance | 连杆最小间距 | ≥ 5.0 | mm | 跳过相邻链接碰撞 |
 | joint_limit_margin | 关节限位裕度 | ≥ 0.05 | rad | 距离硬限位裕度 |
 | path_jerk | 轨迹急动度 | ≤ 100.0 | ratio | 归一化急动度 |
-| condition_number | 奇异位形接近度 | ≤ 5000.0 | - | Jacobian 条件数（平移雅可比） |
+| condition_number | 奇异位形接近度 | ≤ 1000.0 | - | Jacobian 条件数（P95，容忍 ≤5% 帧离群） |
 | tcp_position_error | TCP 位置精度 | ≤ 100.0 | ratio | 步长一致性 |
 | payload_ratio | 负载率 | ≤ 0.9 | ratio | 不超过额定 90% |
 | code_syntax_valid | 代码语法 | = 0 | errors | 所有 .py 文件语法校验 |
