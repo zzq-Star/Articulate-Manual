@@ -38,6 +38,11 @@ export ARTICULATE_ANTHROPIC_API_KEY=sk-...
 
 # One-command generation (all 5 stages)
 articulate generate "Pick and place from (0.3, 0, 0.2) to (0.6, 0, 0.3)"
+可选参数：
+参数	说明
+-m, --model	LLM 模型名称（如 deepseek-chat、claude-sonnet-4-20250514），不指定则使用默认模型
+-p, --provider	LLM 提供商（anthropic / deepseek / openai），不指定时从 --model 自动推断
+--dir	项目输出目录，不指定则自动创建
 
 # Or step by step
 articulate init my_project
